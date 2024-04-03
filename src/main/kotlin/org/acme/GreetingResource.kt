@@ -7,6 +7,7 @@ import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
 import java.util.Random
+import jakarta.persistence.NoResultException
 
 @Path("/hello")
 class GreetingResource {
@@ -20,9 +21,12 @@ class GreetingResource {
         val randomId = getRandomId()
         val query = entityManager.createQuery("SELECT name FROM Users where id = :randomId")
         query.setParameter("randomId", randomId)
-        val name = query.singleResult as? String ?: ""
-
-        return "hello $name"
+        return try {
+            val name = query.singleResult as? String ?: ""
+            "hello $name"
+        } catch (e: NoResultException) {
+            "No user found for id: $randomId"
+        }
     }
 
     private fun getRandomId(): Long {
